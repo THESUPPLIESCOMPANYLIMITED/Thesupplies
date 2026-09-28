@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: The Supplies Automation Intake API
+  version: 0.1.0
+  description: >-
+    Safe webhook receipt service. It verifies an HMAC signature and replay window,
+    deduplicates event identifiers, and stores a payload digest only. It does not
+    dispatch or execute downstream business actions.
+servers:
+  - url: https://hooks.{companyDomain}
+    variables:
+      companyDomain:
+        default: example.invalid
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      summary: Liveness/readiness check
+      responses:
+        '200':
+          description: Service is responding
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    const: ok
+  /v1/events/{source}:
+    post:
+      operationId: receiveWebhookEvent
+      summary: Validate and record a webhook receipt
+      description: >-
+        The signature is HMAC-SHA256 over the UTF-8 bytes of
+        `{timestamp}.{eventId}.` followed by the exact raw request body. Send the
+        signature as `sha256=<lowercase hex>`. Timestamps are Unix seconds and
+        must be within 300 seconds of server time. Maximum body size is 1 MiB.
+        A 202 response confirms a receipt was stored; no downstream workflow runs.
+      parameters:
+        - name: source
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9][a-z0-9_-]{0,63}$'
+        - name: X-Event-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9._:-]{1,128}$'
+        - name: X-Event-Timestamp
+          in: header
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]+$'
+        - name: X-Webhook-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+            pattern: '^sha256=[0-9a-f]{64}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Receipt stored; downstream processing is not enabled
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accepted, duplicate]
+                properties:
+                  accepted:
+                    const: true
+                  duplicate:
+                    type: boolean
+        '400':
+          description: Invalid event identifier, content length, or JSON object
+        '401':
+          description: Invalid signature or stale timestamp
+        '404':
+          description: Unknown route
+        '409':
+          description: Event identifier was reused with a different payload digest
+        '413':
+          description: Request body exceeds 1 MiB
+        '503':
+          description: Source secret is not configured or receipt store is unavailable

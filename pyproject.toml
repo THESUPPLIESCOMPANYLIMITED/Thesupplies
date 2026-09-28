@@ -1,0 +1,10 @@
+[project]
+name = "supply-enterprise-automation-starter"
+version = "0.1.0"
+description = "Security-first webhook intake scaffold for an enterprise automation blueprint"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

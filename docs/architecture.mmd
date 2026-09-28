@@ -1,0 +1,32 @@
+flowchart LR
+  subgraph Sources["Source systems — provider-approved API or webhook"]
+    ERP[ERP / Finance]
+    CRM[CRM / Marketing]
+    HRIS[HRIS / People]
+    WMS[Warehouse / Suppliers]
+    ITSM[IT / Service systems]
+  end
+  EDGE["Corporate API hostname<br/>DNS + TLS + WAF + identity"]
+  INTAKE["Webhook intake<br/>schema + HMAC + replay + idempotency"]
+  QUEUE["Durable queue<br/>retry + dead-letter + replay"]
+  POLICY["Policy & workflow engine<br/>risk tier + approvals + kill switch"]
+  ADAPTERS["Least-privilege connector adapters"]
+  TARGETS["Approved destination systems"]
+  LAKE["Governed lakehouse<br/>approved datasets only"]
+  AUDIT["Append-only audit / SIEM"]
+  OPS["Metrics + traces + alerts + on-call"]
+
+  Sources --> EDGE --> INTAKE --> QUEUE --> POLICY --> ADAPTERS --> TARGETS
+  INTAKE -. metadata only .-> AUDIT
+  POLICY -. decisions .-> AUDIT
+  ADAPTERS -. outcomes .-> AUDIT
+  Sources -. approved / minimized datasets .-> LAKE
+  INTAKE -. health .-> OPS
+  QUEUE -. lag / DLQ .-> OPS
+  POLICY -. workflow state .-> OPS
+  ADAPTERS -. provider errors .-> OPS
+
+  HUMAN["Authorized human approver"] --> POLICY
+  KILL["Emergency kill switch"] --> POLICY
+  classDef boundary fill:#eef5ff,stroke:#275dad,color:#102542;
+  class EDGE,INTAKE,QUEUE,POLICY,ADAPTERS boundary;
