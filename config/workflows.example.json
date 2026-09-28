@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "default_decision": "deny",
+  "workflow_requirements": [
+    "named_business_owner",
+    "documented_purpose_and_legal_basis_assessment",
+    "data_classification_and_retention",
+    "idempotency_and_replay_protection",
+    "test_evidence_and_rollback_plan",
+    "least_privilege_service_identity"
+  ],
+  "risk_tiers": {
+    "tier_0_read_only": {
+      "examples": ["internal reporting", "catalog lookup"],
+      "mode": "automatic_after_test_and_owner_approval",
+      "human_confirmation_per_run": false
+    },
+    "tier_1_reversible_internal_write": {
+      "examples": ["create internal draft", "update non-financial internal status"],
+      "mode": "automatic_only_after_pilot_and_dual_owner_approval",
+      "human_confirmation_per_run": "policy_defined",
+      "rollback_required": true
+    },
+    "tier_2_external_or_sensitive_write": {
+      "examples": ["supplier/customer communication", "personal-data change", "inventory commitment"],
+      "mode": "approval_required",
+      "human_confirmation_per_run": true,
+      "rollback_or_compensating_action_required": true
+    },
+    "tier_3_irreversible_or_regulated": {
+      "examples": ["payment or bank instruction", "tax/legal filing", "employment decision", "credential/access change", "record deletion"],
+      "mode": "manual_only_until_specific_governance_approval",
+      "human_confirmation_per_run": true,
+      "segregation_of_duties": true
+    }
+  },
+  "runtime_controls": {
+    "rate_limits": "per-provider-and-per-workflow",
+    "circuit_breaker": true,
+    "dead_letter_review": true,
+    "kill_switch": true,
+    "audit_log": "append_only_external_sink_in_production",
+    "sensitive_payload_logging": false,
+    "change_management": "versioned_and_peer_reviewed"
+  }
+}

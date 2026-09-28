@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "organization": {
+    "brand": "The Supplies Company",
+    "canonical_domain": "<company-domain-to-confirm>",
+    "automation_hostname": "automation.<company-domain-to-confirm>",
+    "api_hostname": "api.<company-domain-to-confirm>",
+    "domain_owner_approval_required": true
+  },
+  "principles": {
+    "integration_default": "disabled_until_owner_approved",
+    "data_movement": "purpose_limited_minimum_fields",
+    "write_operations": "deny_by_default",
+    "provider_credentials": "secret_manager_only",
+    "webhook_transport": "https_only"
+  },
+  "business_domains": [
+    {"id": "people", "systems": [], "data_classes": ["personal", "confidential"]},
+    {"id": "finance", "systems": [], "data_classes": ["financial", "confidential"]},
+    {"id": "suppliers", "systems": [], "data_classes": ["commercial", "confidential"]},
+    {"id": "marketing", "systems": [], "data_classes": ["personal", "public"]},
+    {"id": "technology", "systems": [], "data_classes": ["security", "operational"]}
+  ],
+  "integrations": [
+    {
+      "id": "<provider-system>",
+      "business_owner": "<role-or-team>",
+      "technical_owner": "<role-or-team>",
+      "environment": "sandbox",
+      "api_base_url": "<official-provider-api-url>",
+      "auth_method": "<oauth2-or-provider-supported-method>",
+      "credential_reference": "<secret-manager-reference-only>",
+      "permitted_scopes": [],
+      "read_operations": [],
+      "write_operations": [],
+      "webhook_enabled": false,
+      "data_residency": "<to-assess>",
+      "retention_days": null,
+      "status": "disabled",
+      "approval_reference": null
+    }
+  ]
+}
